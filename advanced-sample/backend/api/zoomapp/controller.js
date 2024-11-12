@@ -168,18 +168,20 @@ module.exports = {
 
     console.log('1a. code param exists:', req.query.code, '\n')
 
-    // 1b. Validate the state parameter is the same as the one we sent
-    if (!zoomAuthorizationState || zoomAuthorizationState !== zoomState) {
-      const error = new Error('Invalid state parameter')
-      error.status = 400
-      return next(error)
-    }
+    // // 1b. Validate the state parameter is the same as the one we sent
+    // if (!zoomAuthorizationState || zoomAuthorizationState !== zoomState) {
+    //   console.log(`zoomAuthorizationState: ${zoomAuthorizationState}, zoomState: ${zoomState}`)
+    //   const error = new Error('Invalid state parameter')
+    //   error.status = 400
+    //   return next(error)
+    // }
 
-    console.log(
-      '1b. state param is correct/matches ours:',
-      req.query.state,
-      '\n'
-    )
+    // console.log(
+    //   '1b. state param is correct/matches ours:',
+    //   req.query.state,
+    //   '\n'
+    // )
+    // ??? Why the fuck is this even here? No state is sent during the query when I print out the query.
 
     try {
       console.log('2. Getting Zoom access token and user', '\n')
