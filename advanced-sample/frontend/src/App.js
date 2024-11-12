@@ -1,7 +1,7 @@
 /* globals zoomSdk */
 import { useLocation, useHistory } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
-import { apis } from "./apis";
+import { apis, invokeZoomAppsSdk } from "./apis";
 import { Authorization } from "./components/Authorization";
 import ApiScrollview from "./components/ApiScrollview";
 import "./App.css";
@@ -19,6 +19,7 @@ function App() {
   const [counter, setCounter] = useState(0);
   const [preMeeting, setPreMeeting] = useState(true); // start with pre-meeting code
   const [userContextStatus, setUserContextStatus] = useState("");
+  const [participantPhotos, setParticipantPhotos] = useState([]);
 
   useEffect(() => {
     async function configureSdk() {
@@ -181,6 +182,32 @@ function App() {
     communicateTabChange();
   }, [connected, location, preMeeting, receiveMessage, runningContext]);
 
+  const handleTakePhoto = async () => {
+    try {
+      // First get participants
+      const participantsResponse = await zoomSdk.getMeetingParticipants();
+      const participantUUIDs = participantsResponse.participants.map(p => p.participantUUID);
+      
+      // Create modified API call with actual participant UUIDs
+      const takePhotoApi = {
+        name: 'takeParticipantPhoto',
+        options: {
+          participantUUIDs,
+          shouldSaveLocally: false
+        }
+      };
+
+      // Call the API with a callback to handle the photos
+      invokeZoomAppsSdk(takePhotoApi, (response) => {
+        if (response.photos) {
+          setParticipantPhotos(response.photos);
+        }
+      })();
+    } catch (error) {
+      console.error('Error taking participant photos:', error);
+    }
+  };
+
   if (error) {
     console.log(error);
     return (
@@ -210,6 +237,43 @@ function App() {
         userContextStatus={userContextStatus}
       />
 
+      <div className="photo-section" style={{ marginTop: '2rem' }}>
+        <button 
+          className="btn btn-primary"
+          onClick={handleTakePhoto}
+          style={{ marginBottom: '1rem' }}
+        >
+          Take Participant Photos
+        </button>
+        
+        <div className="photo-grid" style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+          gap: '1rem',
+          padding: '1rem'
+        }}>
+          {participantPhotos.map((photo, index) => (
+            <div key={index} style={{ 
+              border: '1px solid #ddd',
+              padding: '0.5rem',
+              borderRadius: '4px'
+            }}>
+              <img 
+                src={`data:image/jpeg;base64,${photo.photoData}`}
+                alt={`Participant ${photo.participantUUID}`}
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  display: 'block'
+                }}
+              />
+              <p style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>
+                Participant {index + 1}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

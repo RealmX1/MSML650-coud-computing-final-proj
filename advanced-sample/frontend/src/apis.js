@@ -1,12 +1,15 @@
 /* globals zoomSdk */
 
-const invokeZoomAppsSdk = api => () => {
+const invokeZoomAppsSdk = (api, onSuccess) => () => {
   const { name, buttonName = '', options = null } = api
   const zoomAppsSdkApi = zoomSdk[name].bind(zoomSdk)
 
   zoomAppsSdkApi(options)
     .then(clientResponse => {
       console.log(`${buttonName || name} success with response: ${JSON.stringify(clientResponse)}`);
+      if (onSuccess) {
+        onSuccess(clientResponse);
+      }
     })
     .catch(clientError => {
       console.log(`${buttonName || name} error: ${JSON.stringify(clientError)}`);
@@ -131,6 +134,12 @@ const apis = [
     name: 'shareApp',
     options: {
       action: 'stop'
+    }
+  },
+  {
+    name: 'takeParticipantPhoto',
+    options: {
+      participantUUIDs: [], // Array of participant UUIDs to take photos of
     }
   },
 ].sort(sortListByName);
