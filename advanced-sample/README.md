@@ -1,3 +1,13 @@
+# Bomin's Intruction:
+Now with the elastic ngrok setup, you don't need to setup the zoom on yourend to use this. just run
+```ngrok http --url=quiet-lark-charming.ngrok-free.app 3000```
+and then open docker and zoom application, and run the following command in `advanced-sample` folder
+```docker-compose up```
+and then visit
+```https://quiet-lark-charming.ngrok-free.app/api/zoomapp/install```
+
+
+
 # Advanced Zoom Apps Sample
 
 Advanced Sample covers most complex scenarios that might be needed in apps.
