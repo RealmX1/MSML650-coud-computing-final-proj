@@ -1,5 +1,5 @@
 import React from 'react'
-import { Routes, Route, Link } from 'react-router-dom'
+import { Route, Routes, Link } from 'react-router-dom'
 import Registration from './components/Registration'
 import HostView from './components/HostView'
 
