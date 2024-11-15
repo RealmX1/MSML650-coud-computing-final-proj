@@ -169,9 +169,34 @@ function App() {
           
           // For each onPhoto event, add a new div that displays the event inside on-photo-response
           zoomSdk.addEventListener('onPhoto', async (event) => {
-            const data = await event;
-            const onPhotoResponseElement = document.getElementById('on-photo-response');
-            onPhotoResponseElement.innerHTML += `<div>${JSON.stringify(data)}</div>`;
+            const photoData = await event;
+            
+            // Create a canvas to convert the pixel data to base64
+            const canvas = document.createElement('canvas');
+            canvas.width = photoData.imageData.width;
+            canvas.height = photoData.imageData.height;
+            const ctx = canvas.getContext('2d');
+            
+            // Create ImageData object from the raw data
+            const imageData = new ImageData(
+              new Uint8ClampedArray(Object.values(photoData.imageData.data)),
+              photoData.imageData.width,
+              photoData.imageData.height
+            );
+            
+            // Put the image data on the canvas
+            ctx.putImageData(imageData, 0, 0);
+            
+            // Convert canvas to base64
+            const base64Image = canvas.toDataURL('image/jpeg');
+
+            setParticipantPhotos(prevPhotos => [...prevPhotos, {
+              participantUUID: photoData.participantUUID,
+              photoData: base64Image,
+              timestamp: photoData.timestamp,
+              videoOff: photoData.videoOff,
+              optedOut: photoData.optedOut
+            }]);
           });
         });
 
@@ -202,12 +227,15 @@ function App() {
 
   const handleTakePhoto = async () => {
     try {
+      // Clear existing photos when starting new capture
+      setParticipantPhotos([]);
+
       // First get participants
       const participantsResponse = await zoomSdk.getMeetingParticipants();
       const participantUUIDs = participantsResponse.participants.map(p => p.participantUUID);
       // display participant UUIDs, each on a new line
       const participantUuidsElement = document.getElementById('participant-uuids');
-      participantUuidsElement.innerHTML = participantUUIDs.map(uuid => `<p>${uuid}</p>`).join('');
+      participantUuidsElement.innerHTML = "Participant UUIDs: " + participantUUIDs.map(uuid => `<p>${uuid}</p>`).join('');
       
       // Create modified API call with actual participant UUIDs
       const takePhotoApi = {
@@ -259,9 +287,8 @@ function App() {
         >
           Take Participant Photos
         </button>
-        <div id="participant-uuids"></div>
-        <div id="take-participant-photo-response"></div>
-        <div id="on-photo-response">onPhoto events: <br/></div>
+        <div id="participant-uuids">Participant UUIDs:</div>
+        {/* <div id="take-participant-photo-response"></div> */}
         <div className="photo-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
@@ -275,7 +302,7 @@ function App() {
               borderRadius: '4px'
             }}>
               <img 
-                src={`data:image/jpeg;base64,${photo.photoData}`}
+                src={photo.photoData}
                 alt={`Participant ${photo.participantUUID}`}
                 style={{
                   width: '100%',
@@ -284,7 +311,7 @@ function App() {
                 }}
               />
               <p style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>
-                Participant {index + 1}
+                {photo.participantUUID}
               </p>
             </div>
           ))}
