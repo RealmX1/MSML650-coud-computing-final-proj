@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@zoom/appssdk": "^0.16.22"
+  }
+}

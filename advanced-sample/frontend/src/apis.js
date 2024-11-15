@@ -1,6 +1,6 @@
 /* globals zoomSdk */
 
-const invokeZoomAppsSdk = (api, onSuccess) => () => {
+const invokeZoomAppsSdk = async (api, onSuccess) => {
   const { name, buttonName = '', options = null } = api
   const zoomAppsSdkApi = zoomSdk[name].bind(zoomSdk)
 

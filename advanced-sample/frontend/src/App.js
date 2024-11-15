@@ -47,6 +47,7 @@ function App() {
             "onConnect",
             "postMessage",
             "onMessage",
+            "onPhoto",
 
             // in-client api and event
             "authorize",
@@ -56,6 +57,7 @@ function App() {
             "onMyUserContextChange",
             "sendAppInvitationToAllParticipants",
             "sendAppInvitation",
+            "takeParticipantPhoto",
           ],
           version: "0.16.0",
         });
@@ -133,6 +135,7 @@ function App() {
     async function connectInstances() {
       // only can call connect when in-meeting
       if (runningContext === "inMeeting") {
+        
         zoomSdk.addEventListener("onConnect", (event) => {
           console.log("Connected");
           setConnected(true);
@@ -155,6 +158,21 @@ function App() {
             };
             zoomSdk.addEventListener("onMessage", on_message_handler_mtg);
           }
+
+          
+
+          // zoomSdk.onPhoto((event) => {
+          //   console.log(event)
+          //   const onPhotoResponseElement = document.getElementById('on-photo-response');
+          //   onPhotoResponseElement.innerHTML += `<div>${event}</div>`;
+          // });
+          
+          // For each onPhoto event, add a new div that displays the event inside on-photo-response
+          zoomSdk.addEventListener('onPhoto', async (event) => {
+            const data = await event;
+            const onPhotoResponseElement = document.getElementById('on-photo-response');
+            onPhotoResponseElement.innerHTML += `<div>${JSON.stringify(data)}</div>`;
+          });
         });
 
         await zoomSdk.connect();
@@ -187,26 +205,31 @@ function App() {
       // First get participants
       const participantsResponse = await zoomSdk.getMeetingParticipants();
       const participantUUIDs = participantsResponse.participants.map(p => p.participantUUID);
+      // display participant UUIDs, each on a new line
+      const participantUuidsElement = document.getElementById('participant-uuids');
+      participantUuidsElement.innerHTML = participantUUIDs.map(uuid => `<p>${uuid}</p>`).join('');
       
       // Create modified API call with actual participant UUIDs
       const takePhotoApi = {
         name: 'takeParticipantPhoto',
         options: {
           participantUUIDs,
-          shouldSaveLocally: false
+          shouldSaveLocally: true
         }
       };
 
       // Call the API with a callback to handle the photos
       invokeZoomAppsSdk(takePhotoApi, (response) => {
-        if (response.photos) {
-          setParticipantPhotos(response.photos);
-        }
+        // display response in the div
+        // only returning whether the api call was successful
+        const takePhotoResponseElement = document.getElementById('take-participant-photo-response');
+        takePhotoResponseElement.innerHTML = JSON.stringify(response);
       })();
     } catch (error) {
       console.error('Error taking participant photos:', error);
     }
   };
+
 
   if (error) {
     console.log(error);
@@ -228,15 +251,6 @@ function App() {
         }
       </p>
 
-      <ApiScrollview />
-      <Authorization
-        handleError={setError}
-        handleUserContextStatus={setUserContextStatus}
-        handleUser={setUser}
-        user={user}
-        userContextStatus={userContextStatus}
-      />
-
       <div className="photo-section" style={{ marginTop: '2rem' }}>
         <button 
           className="btn btn-primary"
@@ -245,7 +259,9 @@ function App() {
         >
           Take Participant Photos
         </button>
-        
+        <div id="participant-uuids"></div>
+        <div id="take-participant-photo-response"></div>
+        <div id="on-photo-response">onPhoto events: <br/></div>
         <div className="photo-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
