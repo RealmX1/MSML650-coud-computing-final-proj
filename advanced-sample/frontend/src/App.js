@@ -173,8 +173,8 @@ function App() {
             
             // Create a canvas to convert the pixel data to base64
             const canvas = document.createElement('canvas');
-            canvas.width = photoData.imageData.width;
-            canvas.height = photoData.imageData.height;
+            // canvas.width = photoData.imageData.width;
+            // canvas.height = photoData.imageData.height;
             const ctx = canvas.getContext('2d');
             
             // Create ImageData object from the raw data
