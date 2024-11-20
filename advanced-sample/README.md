@@ -1,8 +1,28 @@
 # Bomin's Intruction:
+
+## Additional Steps on EC2:
+### Install Docker
+```bash
+sudo yum update -y
+sudo yum install docker -y
+sudo systemctl enable docker
+sudo systemctl start docker
+```
+
+### Install Docker Compose
+```bash
+sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+docker-compose version
+```
+
+## Run the app
+
 Now with the elastic ngrok setup, you don't need to setup the zoom on yourend to use this. just run
 ```bash
 ngrok config add-authtoken 2nuObSnw3MVeWMQxTozZkpgRzJk_6RKdjYQcbCjCiGjjLsYHT
-ngrok http --url=quiet-lark-charming.ngrok-free.app 3000```
+ngrok http --url=quiet-lark-charming.ngrok-free.app 3000
+```
 and then open docker and zoom application, and run the following command in `advanced-sample` folder
 ```docker-compose up```
 and then visit

@@ -44,8 +44,9 @@ services:
       - REACT_APP_AUTH0_CLIENT_SECRET=${AUTH0_CLIENT_SECRET}
       - REACT_APP_AUTH0_ISSUER_BASE_URL=${AUTH0_ISSUER_BASE_URL}
     volumes:
-      - ./frontend:/home/node/app
-      - /home/node/app/node_modules
+      - ./frontend:/home/node/app:delegated
+      - frontend_node_modules:/home/node/app/node_modules
+
 
   redis:
     image: redis:alpine
