@@ -13,7 +13,7 @@
     "postprepare": "node scripts/gen-secrets.cjs"
   },
   "dependencies": {
-    "@zoom/appssdk": "^0.16.22",
+    "@zoom/appssdk": "^0.16.23",
     "axios": "^1.6.2",
     "compression": "^1.7.4",
     "cookie-parser": "~1.4.6",
@@ -41,7 +41,6 @@
     "envsub": "^4.0.7",
     "eslint": "^8.9.0",
     "eslint-config-prettier": "^8.4.0",
-    "husky": "^7.0.4",
     "lint-staged": "^12.3.4",
     "nodemon": "^3.0.1",
     "prettier": "^2.5.1",
