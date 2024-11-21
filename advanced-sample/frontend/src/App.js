@@ -6,6 +6,8 @@ import { Authorization } from "./components/Authorization";
 import ApiScrollview from "./components/ApiScrollview";
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
+import VerificationResults from './components/VerificationResults';
+import axios from 'axios';
 
 let once = 0; // to prevent increasing number of event listeners being added
 
@@ -20,6 +22,7 @@ function App() {
   const [preMeeting, setPreMeeting] = useState(true); // start with pre-meeting code
   const [userContextStatus, setUserContextStatus] = useState("");
   const [participantPhotos, setParticipantPhotos] = useState([]);
+  const [verificationResults, setVerificationResults] = useState([]);
 
   useEffect(() => {
     async function configureSdk() {
@@ -133,9 +136,7 @@ function App() {
 
   useEffect(() => {
     async function connectInstances() {
-      // only can call connect when in-meeting
       if (runningContext === "inMeeting") {
-        
         zoomSdk.addEventListener("onConnect", (event) => {
           console.log("Connected");
           setConnected(true);
@@ -158,46 +159,6 @@ function App() {
             };
             zoomSdk.addEventListener("onMessage", on_message_handler_mtg);
           }
-
-          
-
-          // zoomSdk.onPhoto((event) => {
-          //   console.log(event)
-          //   const onPhotoResponseElement = document.getElementById('on-photo-response');
-          //   onPhotoResponseElement.innerHTML += `<div>${event}</div>`;
-          // });
-          
-          // For each onPhoto event, add a new div that displays the event inside on-photo-response
-          zoomSdk.addEventListener('onPhoto', async (event) => {
-            const photoData = await event;
-            
-            // Create a canvas to convert the pixel data to base64
-            const canvas = document.createElement('canvas');
-            // canvas.width = photoData.imageData.width;
-            // canvas.height = photoData.imageData.height;
-            const ctx = canvas.getContext('2d');
-            
-            // Create ImageData object from the raw data
-            const imageData = new ImageData(
-              new Uint8ClampedArray(Object.values(photoData.imageData.data)),
-              photoData.imageData.width,
-              photoData.imageData.height
-            );
-            
-            // Put the image data on the canvas
-            ctx.putImageData(imageData, 0, 0);
-            
-            // Convert canvas to base64
-            const base64Image = canvas.toDataURL('image/jpeg');
-
-            setParticipantPhotos(prevPhotos => [...prevPhotos, {
-              participantUUID: photoData.participantUUID,
-              photoData: base64Image,
-              timestamp: photoData.timestamp,
-              videoOff: photoData.videoOff,
-              optedOut: photoData.optedOut
-            }]);
-          });
         });
 
         await zoomSdk.connect();
@@ -227,32 +188,98 @@ function App() {
 
   const handleTakePhoto = async () => {
     try {
-      // Clear existing photos when starting new capture
+      // Clear existing photos and results
       setParticipantPhotos([]);
+      setVerificationResults([]);
 
-      // First get participants
+      // Get participants
       const participantsResponse = await zoomSdk.getMeetingParticipants();
-      const participantUUIDs = participantsResponse.participants.map(p => p.participantUUID);
-      // display participant UUIDs, each on a new line
-      const participantUuidsElement = document.getElementById('participant-uuids');
-      participantUuidsElement.innerHTML = "Participant UUIDs: " + participantUUIDs.map(uuid => `<p>${uuid}</p>`).join('');
+      const participants = participantsResponse.participants;
+
+      // Initialize verification results
+      const initialResults = participants.map(p => ({
+        participantUUID: p.participantUUID,
+        userId: null,
+        email: null,
+        photoData: null,
+        confidence: null
+      }));
+      setVerificationResults(initialResults);
+
+      // Create the photo handler
+      const photoHandler = async (event) => {
+        const photoData = await event;
+        
+        // Convert photo data to base64
+        const canvas = document.createElement('canvas');
+        canvas.width = photoData.imageData.width;
+        canvas.height = photoData.imageData.height;
+        const ctx = canvas.getContext('2d');
+        const imageData = new ImageData(
+          new Uint8ClampedArray(Object.values(photoData.imageData.data)),
+          photoData.imageData.width,
+          photoData.imageData.height
+        );
+        ctx.putImageData(imageData, 0, 0);
+        const base64Image = canvas.toDataURL('image/jpeg');
+
+        // Get participant's email
+        const emailResponse = await zoomSdk.getMeetingParticipantsEmail({
+          participantUUID: photoData.participantUUID
+        });
+        const email = emailResponse.email;
+
+        try {
+          // Call AWS API Gateway endpoint
+          const response = await axios.post('YOUR_API_GATEWAY_ENDPOINT', {
+            image: base64Image,
+            email: email
+          });
+
+          // Update both states
+          setParticipantPhotos(prevPhotos => [...prevPhotos, {
+            participantUUID: photoData.participantUUID,
+            photoData: base64Image,
+            timestamp: photoData.timestamp,
+            videoOff: photoData.videoOff,
+            optedOut: photoData.optedOut
+          }]);
+
+          setVerificationResults(prevResults => 
+            prevResults.map(result => 
+              result.participantUUID === photoData.participantUUID
+                ? {
+                    ...result,
+                    photoData: base64Image,
+                    email: email,
+                    userId: response.data.userId,
+                    confidence: response.data.confidence
+                  }
+                : result
+            )
+          );
+        } catch (error) {
+          console.error('Error verifying face:', error);
+        }
+      };
+
+      // Remove any existing onPhoto listeners
+      zoomSdk.removeEventListener('onPhoto', photoHandler);
       
-      // Create modified API call with actual participant UUIDs
+      // Add the new listener
+      zoomSdk.addEventListener('onPhoto', photoHandler);
+
+      // Take photos
       const takePhotoApi = {
         name: 'takeParticipantPhoto',
         options: {
-          participantUUIDs,
+          participantUUIDs: participants.map(p => p.participantUUID),
           shouldSaveLocally: true
         }
       };
 
-      // Call the API with a callback to handle the photos
-      invokeZoomAppsSdk(takePhotoApi, (response) => {
-        // display response in the div
-        // only returning whether the api call was successful
-        const takePhotoResponseElement = document.getElementById('take-participant-photo-response');
-        takePhotoResponseElement.innerHTML = JSON.stringify(response);
-      })();
+      await invokeZoomAppsSdk(takePhotoApi);
+
     } catch (error) {
       console.error('Error taking participant photos:', error);
     }
@@ -279,43 +306,16 @@ function App() {
         }
       </p>
 
-      <div className="photo-section" style={{ marginTop: '2rem' }}>
-        <button 
+      <div className="verification-section">
+        <button
+          name="verify-participants"
           className="btn btn-primary"
           onClick={handleTakePhoto}
           style={{ marginBottom: '1rem' }}
         >
-          Take Participant Photos
+          Verify All Participants
         </button>
-        <div id="participant-uuids">Participant UUIDs:</div>
-        {/* <div id="take-participant-photo-response"></div> */}
-        <div className="photo-grid" style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-          gap: '1rem',
-          padding: '1rem'
-        }}>
-          {participantPhotos.map((photo, index) => (
-            <div key={index} style={{ 
-              border: '1px solid #ddd',
-              padding: '0.5rem',
-              borderRadius: '4px'
-            }}>
-              <img 
-                src={photo.photoData}
-                alt={`Participant ${photo.participantUUID}`}
-                style={{
-                  width: '100%',
-                  height: 'auto',
-                  display: 'block'
-                }}
-              />
-              <p style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>
-                {photo.participantUUID}
-              </p>
-            </div>
-          ))}
-        </div>
+        <VerificationResults participants={verificationResults} />
       </div>
     </div>
   );
