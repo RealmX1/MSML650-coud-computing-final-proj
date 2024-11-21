@@ -208,6 +208,7 @@ function App() {
 
       // Create the photo handler
       const photoHandler = async (event) => {
+        console.log("Photo event received");
         const photoData = await event;
         
         // Convert photo data to base64
@@ -228,7 +229,9 @@ function App() {
           participantUUID: photoData.participantUUID
         });
         const email = emailResponse.email;
-
+        
+        // Update participant photos state
+        console.log("Updating participant photos state");
         setParticipantPhotos(prevPhotos => [...prevPhotos, {
           participantUUID: photoData.participantUUID,
           photoData: base64Image,
@@ -239,7 +242,8 @@ function App() {
         
         try {
           // Call AWS API Gateway endpoint
-          const response = await axios.post('YOUR_API_GATEWAY_ENDPOINT', {
+          console.log("Calling AWS API Gateway endpoint");
+          const response = await axios.post('https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
             image: base64Image,
             email: email
           });
