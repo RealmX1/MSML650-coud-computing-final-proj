@@ -316,6 +316,35 @@ function App() {
           Verify All Participants
         </button>
         <VerificationResults participants={verificationResults} />
+        
+        <div className="photo-grid" style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+          gap: '1rem',
+          padding: '1rem',
+          marginTop: '2rem'
+        }}>
+          {participantPhotos.map((photo, index) => (
+            <div key={index} style={{ 
+              border: '1px solid #ddd',
+              padding: '0.5rem',
+              borderRadius: '4px'
+            }}>
+              <img 
+                src={photo.photoData}
+                alt={`Participant ${photo.participantUUID}`}
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  display: 'block'
+                }}
+              />
+              <p style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>
+                {photo.participantUUID}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
