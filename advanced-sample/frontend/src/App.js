@@ -229,21 +229,20 @@ function App() {
         });
         const email = emailResponse.email;
 
+        setParticipantPhotos(prevPhotos => [...prevPhotos, {
+          participantUUID: photoData.participantUUID,
+          photoData: base64Image,
+          timestamp: photoData.timestamp,
+          videoOff: photoData.videoOff,
+          optedOut: photoData.optedOut
+        }]);
+        
         try {
           // Call AWS API Gateway endpoint
           const response = await axios.post('YOUR_API_GATEWAY_ENDPOINT', {
             image: base64Image,
             email: email
           });
-
-          // Update both states
-          setParticipantPhotos(prevPhotos => [...prevPhotos, {
-            participantUUID: photoData.participantUUID,
-            photoData: base64Image,
-            timestamp: photoData.timestamp,
-            videoOff: photoData.videoOff,
-            optedOut: photoData.optedOut
-          }]);
 
           setVerificationResults(prevResults => 
             prevResults.map(result => 
