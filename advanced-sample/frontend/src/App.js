@@ -223,8 +223,12 @@ function App() {
         );
         ctx.putImageData(imageData, 0, 0);
 
-        // Convert canvas to blob (binary data)
+        // Convert canvas to blob
         const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg'));
+        
+        // Create FormData and append the blob as a file
+        const formData = new FormData();
+        formData.append('file', blob, 'photo.jpg');
 
         // Get participant's email
         const emailResponse = await zoomSdk.getMeetingParticipantsEmail({
@@ -243,19 +247,20 @@ function App() {
         }]);
         
         try {
-          const responseDiv = document.getElementById('response');
-          responseDiv.textContent = blob;
-          // Call AWS API Gateway endpoint with binary data
-          console.log("Calling AWS API Gateway endpoint");
+          // Call AWS API Gateway endpoint with FormData
           const response = await fetch('https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
             method: 'POST',
-            body: blob
+            body: formData
           });
 
-          const data = await response.json();
-          // log the response in a div
-          responseDiv.textContent = JSON.stringify(data);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
 
+          const data = await response.json();
+          console.log('Face verification response:', data);
+
+          // Update verification results
           setVerificationResults(prevResults => 
             prevResults.map(result => 
               result.participantUUID === photoData.participantUUID
@@ -263,8 +268,8 @@ function App() {
                     ...result,
                     photoData: base64Image,
                     email: email,
-                    userId: data.userId,
-                    confidence: data.confidence
+                    userId: data.user_id, // Updated to match API response
+                    confidence: data.similarity // Updated to match API response
                   }
                 : result
             )
