@@ -243,6 +243,8 @@ function App() {
         }]);
         
         try {
+          const responseDiv = document.getElementById('response');
+          responseDiv.textContent = "Calling AWS API Gateway endpoint";
           // Call AWS API Gateway endpoint with binary data
           console.log("Calling AWS API Gateway endpoint");
           const response = await fetch('https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
@@ -252,7 +254,6 @@ function App() {
 
           const data = await response.json();
           // log the response in a div
-          const responseDiv = document.getElementById('response');
           responseDiv.textContent = JSON.stringify(data);
 
           setVerificationResults(prevResults => 
