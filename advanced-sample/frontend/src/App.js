@@ -211,7 +211,7 @@ function App() {
         console.log("Photo event received");
         const photoData = await event;
         
-        // Convert photo data to base64
+        // Convert photo data to binary
         const canvas = document.createElement('canvas');
         canvas.width = photoData.imageData.width;
         canvas.height = photoData.imageData.height;
@@ -222,7 +222,9 @@ function App() {
           photoData.imageData.height
         );
         ctx.putImageData(imageData, 0, 0);
-        const base64Image = canvas.toDataURL('image/jpeg');
+
+        // Convert canvas to blob (binary data)
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg'));
 
         // Get participant's email
         const emailResponse = await zoomSdk.getMeetingParticipantsEmail({
@@ -230,8 +232,8 @@ function App() {
         });
         const email = emailResponse.email;
         
-        // Update participant photos state
-        console.log("Updating participant photos state");
+        // Store base64 version for display
+        const base64Image = canvas.toDataURL('image/jpeg');
         setParticipantPhotos(prevPhotos => [...prevPhotos, {
           participantUUID: photoData.participantUUID,
           photoData: base64Image,
@@ -241,12 +243,17 @@ function App() {
         }]);
         
         try {
-          // Call AWS API Gateway endpoint
+          // Call AWS API Gateway endpoint with binary data
           console.log("Calling AWS API Gateway endpoint");
-          const response = await axios.post('https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
-            image: base64Image,
-            email: email
+          const response = await fetch('https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
+            method: 'POST',
+            body: blob
           });
+
+          const data = await response.json();
+          // log the response in a div
+          const responseDiv = document.getElementById('response');
+          responseDiv.textContent = JSON.stringify(data);
 
           setVerificationResults(prevResults => 
             prevResults.map(result => 
@@ -255,8 +262,8 @@ function App() {
                     ...result,
                     photoData: base64Image,
                     email: email,
-                    userId: response.data.userId,
-                    confidence: response.data.confidence
+                    userId: data.userId,
+                    confidence: data.confidence
                   }
                 : result
             )
@@ -308,6 +315,8 @@ function App() {
           "Configuring Zoom JavaScript SDK..."
         }
       </p>
+
+      <div id="response" style={{ marginBottom: '1rem' }}></div>
 
       <div className="verification-section">
         <button
