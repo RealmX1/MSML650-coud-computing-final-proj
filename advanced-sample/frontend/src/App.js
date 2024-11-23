@@ -316,7 +316,12 @@ function App() {
         }
       </p>
 
-      <div id="response" style={{ marginBottom: '1rem' }}></div>
+      <div id="response" style={{ 
+        marginBottom: '1rem',
+        border: '1px solid #ddd',
+        padding: '0.5rem',
+        borderRadius: '4px'
+      }}>response!</div>
 
       <div className="verification-section">
         <button
