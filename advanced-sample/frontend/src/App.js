@@ -192,7 +192,6 @@ function App() {
       setParticipantPhotos([]);
       setVerificationResults([]);
 
-      // Get participants
       const participantsResponse = await zoomSdk.getMeetingParticipants();
       const participants = participantsResponse.participants;
 
@@ -206,7 +205,6 @@ function App() {
       }));
       setVerificationResults(initialResults);
 
-      // Create the photo handler
       const photoHandler = async (event) => {
         console.log("Photo event received");
         const photoData = await event;
@@ -224,7 +222,14 @@ function App() {
         ctx.putImageData(imageData, 0, 0);
 
         // Convert canvas to blob
-        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg'));
+        const blob = await new Promise(resolve => 
+          canvas.toBlob(resolve, 'image/jpeg', 0.95)
+        );
+
+        // Create a File object from the blob
+        const imageFile = new File([blob], 'participant-photo.jpg', { 
+          type: 'image/jpeg' 
+        });
 
         // Get participant's email
         const emailResponse = await zoomSdk.getMeetingParticipantsEmail({
@@ -244,13 +249,15 @@ function App() {
         
         try {
           const responseDiv = document.getElementById('response');
-          responseDiv.textContent = "sending base64 image to AWS API Gateway... \n" + base64Image;
+          responseDiv.textContent = await blob.text();
           // Call AWS API Gateway endpoint with binary data
           console.log("Calling AWS API Gateway endpoint");
-          
           const response = await fetch('https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
             method: 'POST',
-            body: base64Image
+            body: imageFile,
+            headers: {
+              'Content-Type': 'image/jpeg'
+            }
           });
 
           if (!response.ok) {
@@ -261,7 +268,6 @@ function App() {
           // log the response in a div
           responseDiv.textContent = JSON.stringify(data);
 
-          // Update verification results
           setVerificationResults(prevResults => 
             prevResults.map(result => 
               result.participantUUID === photoData.participantUUID
@@ -269,14 +275,27 @@ function App() {
                     ...result,
                     photoData: base64Image,
                     email: email,
-                    userId: data.user_id, // Updated to match API response
-                    confidence: data.similarity // Updated to match API response
+                    userId: data.user_id || 'Unknown',
+                    confidence: data.similarity || 0
                   }
                 : result
             )
           );
         } catch (error) {
           console.error('Error verifying face:', error);
+          // Update verification results with error
+          setVerificationResults(prevResults => 
+            prevResults.map(result => 
+              result.participantUUID === photoData.participantUUID
+                ? {
+                    ...result,
+                    photoData: base64Image,
+                    email: email,
+                    error: error.message
+                  }
+                : result
+            )
+          );
         }
       };
 
@@ -287,15 +306,13 @@ function App() {
       zoomSdk.addEventListener('onPhoto', photoHandler);
 
       // Take photos
-      const takePhotoApi = {
+      await invokeZoomAppsSdk({
         name: 'takeParticipantPhoto',
         options: {
           participantUUIDs: participants.map(p => p.participantUUID),
           shouldSaveLocally: true
         }
-      };
-
-      await invokeZoomAppsSdk(takePhotoApi);
+      });
 
     } catch (error) {
       console.error('Error taking participant photos:', error);
