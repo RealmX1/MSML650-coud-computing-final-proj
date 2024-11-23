@@ -247,7 +247,10 @@ function App() {
         }]);
         
         try {
-          // Call AWS API Gateway endpoint with FormData
+          const responseDiv = document.getElementById('response');
+          responseDiv.textContent = formData;
+          // Call AWS API Gateway endpoint with binary data
+          console.log("Calling AWS API Gateway endpoint");
           const response = await fetch('https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
             method: 'POST',
             body: formData
@@ -258,7 +261,8 @@ function App() {
           }
 
           const data = await response.json();
-          console.log('Face verification response:', data);
+          // log the response in a div
+          responseDiv.textContent = JSON.stringify(data);
 
           // Update verification results
           setVerificationResults(prevResults => 
