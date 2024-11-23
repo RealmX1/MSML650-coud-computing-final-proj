@@ -225,10 +225,6 @@ function App() {
 
         // Convert canvas to blob
         const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg'));
-        
-        // Create FormData and append the blob as a file
-        const formData = new FormData();
-        formData.append('file', blob, 'photo.jpg');
 
         // Get participant's email
         const emailResponse = await zoomSdk.getMeetingParticipantsEmail({
@@ -248,12 +244,13 @@ function App() {
         
         try {
           const responseDiv = document.getElementById('response');
-          responseDiv.textContent = formData;
+          responseDiv.textContent = "sending base64 image to AWS API Gateway... \n" + base64Image;
           // Call AWS API Gateway endpoint with binary data
           console.log("Calling AWS API Gateway endpoint");
+          
           const response = await fetch('https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
             method: 'POST',
-            body: formData
+            body: base64Image
           });
 
           if (!response.ok) {
