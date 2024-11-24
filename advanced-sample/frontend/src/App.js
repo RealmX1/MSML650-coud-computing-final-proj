@@ -256,7 +256,7 @@ function App() {
           console.log("Calling AWS API Gateway endpoint");
           const response = await fetch('https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
             method: 'POST',
-            body: imageFile
+            body: "test test test body test."
           });
 
           if (!response.ok) {
