@@ -248,13 +248,13 @@ function App() {
         // Debug: Log the request
         const responseDiv = document.getElementById('response');
 
-        // raw image (of format "9j/...")
+        // raw image (of format "9j/...", which is not encoded into base64)
         const rawImage = base64Image.split(",")[1];
 
         // request json
         const requestJson = {
           method: 'POST',
-          body: base64Image.
+          body: base64Image
         };
         responseDiv.textContent = "Sending image to AWS API Gateway... \n" + JSON.stringify(requestJson); //.substring(0, 750) + "\n...";
         console.log("Calling AWS API Gateway endpoint with image size:", blob.size);
