@@ -262,6 +262,16 @@ function App() {
           participantUUID: eventData.participantUUID
         });
         const email = emailResponse.email;
+        
+        // Store base64 version for display
+        const base64Image = canvas.toDataURL('image/jpeg');
+        setParticipantPhotos(prevPhotos => [...prevPhotos, {
+          participantUUID: eventData.participantUUID,
+          photoData: base64Image,
+          timestamp: eventData.timestamp,
+          videoOff: eventData.videoOff,
+          optedOut: eventData.optedOut
+        }]);
 
         setVerificationResults(prevResults => 
           prevResults.map(result => 
