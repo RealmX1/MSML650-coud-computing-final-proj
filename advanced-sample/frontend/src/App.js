@@ -228,6 +228,16 @@ function App() {
           canvas.toBlob(resolve, 'image/jpeg', 0.95)
         );
 
+        // Store base64 version for display
+        const base64Image = canvas.toDataURL('image/jpeg');
+        setParticipantPhotos(prevPhotos => [...prevPhotos, {
+          participantUUID: eventData.participantUUID,
+          photoData: base64Image,
+          timestamp: eventData.timestamp,
+          videoOff: eventData.videoOff,
+          optedOut: eventData.optedOut
+        }]);
+
         // Debug: Check blob size
         console.log('Blob size:', blob.size);
 
@@ -241,14 +251,14 @@ function App() {
         // request json
         const requestJson = {
           method: 'POST',
-          body: blob
+          body: base64Image
         };
         responseDiv.textContent = "Sending image to AWS API Gateway... \n" + JSON.stringify(requestJson);
         console.log("Calling AWS API Gateway endpoint with image size:", blob.size);
 
         const response = await fetch('https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
           method: 'POST',
-          body: blob,  // Send the blob directly
+          body: base64Image,  // Send the blob directly
         });
 
         if (!response.ok) {
@@ -265,16 +275,6 @@ function App() {
           participantUUID: eventData.participantUUID
         });
         const email = emailResponse.email;
-        
-        // Store base64 version for display
-        const base64Image = canvas.toDataURL('image/jpeg');
-        setParticipantPhotos(prevPhotos => [...prevPhotos, {
-          participantUUID: eventData.participantUUID,
-          photoData: base64Image,
-          timestamp: eventData.timestamp,
-          videoOff: eventData.videoOff,
-          optedOut: eventData.optedOut
-        }]);
 
         setVerificationResults(prevResults => 
           prevResults.map(result => 
