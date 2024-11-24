@@ -281,36 +281,26 @@ function App() {
           responseDiv.textContent = "Error calling API: " + error.message;
           
           // Still update the verification results, but mark as failed
+          data = {
+            user_id: 'API Error',
+            similarity: 0,
+            error: error.message
+          };  
+        } finally {
           setVerificationResults(prevResults => 
             prevResults.map(result => 
               result.participantUUID === eventData.participantUUID
                 ? {
                     ...result,
-                    photoData: base64Image,
-                    email: email,
-                    userId: 'API Error',
-                    confidence: 0,
-                    error: error.message
-                  }
-                : result
-            )
-          );
-          return; // Exit the handler for this participant
-        }
-
-        setVerificationResults(prevResults => 
-          prevResults.map(result => 
-            result.participantUUID === eventData.participantUUID
-              ? {
-                  ...result,
                   photoData: base64Image,
                   email: email,
                   userId: data.user_id || 'Unknown',
                   confidence: data.similarity || 0
                 }
               : result
-          )
-        );
+            )
+          );
+        }
       };
 
       // Remove any existing onPhoto listeners
