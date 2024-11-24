@@ -251,8 +251,13 @@ function App() {
         
         try {
           const responseDiv = document.getElementById('response');
-          responseDiv.textContent = "Sending image to AWS API Gateway... \n" + imageFile;
-          // Call AWS API Gateway endpoint with binary data
+          // log the http request json
+          const requestBody = {
+            method: 'POST',
+            body: imageFile
+          };
+
+          responseDiv.textContent = "Sending image to AWS API Gateway... \n" + JSON.stringify(requestBody);
           console.log("Calling AWS API Gateway endpoint");
           const response = await fetch('https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
             method: 'POST',
