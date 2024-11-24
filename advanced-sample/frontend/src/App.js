@@ -281,11 +281,11 @@ function App() {
           responseDiv.textContent = "Error calling API: " + error.message;
           
           // Still update the verification results, but mark as failed
-          data = {
+          const data = {
             user_id: 'API Error',
             similarity: 0,
             error: error.message
-          };  
+          };
         } finally {
           setVerificationResults(prevResults => 
             prevResults.map(result => 
