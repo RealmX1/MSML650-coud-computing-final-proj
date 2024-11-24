@@ -248,24 +248,26 @@ function App() {
         // Debug: Log the request
         const responseDiv = document.getElementById('response');
 
+        // raw image (of format "9j/...")
+        const rawImage = base64Image.split(",")[1];
+
         // request json
         const requestJson = {
           method: 'POST',
-          body: base64Image
+          body: base64Image.
         };
-        responseDiv.textContent = "Sending image to AWS API Gateway... \n" + JSON.stringify(requestJson).substring(0, 100);
+        responseDiv.textContent = "Sending image to AWS API Gateway... \n" + JSON.stringify(requestJson); //.substring(0, 750) + "\n...";
         console.log("Calling AWS API Gateway endpoint with image size:", blob.size);
 
-        const response = await fetch('https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
-          method: 'POST',
-          body: "test test test",  // Send the blob directly
-        });
+        // Send request using axios instead of fetch
+        const response = await axios.post(
+          'https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace',
+          rawImage
+        );
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = response.json();
+        // Update how we handle the response since axios automatically parses JSON
+        const data = response.data;
+        
         // Log the response
         responseDiv.textContent = "API Response: " + JSON.stringify(data);
         console.log('API Response:', data);
