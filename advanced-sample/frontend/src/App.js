@@ -259,8 +259,13 @@ function App() {
         // raw image (of format "9j/...", which is not encoded into base64)
         const rawImage = base64Image.split(",")[1];
 
+        // Declare data variable outside try block
+        let data = {
+          user_id: 'Unknown',
+          similarity: 0
+        };
+
         try {
-          // Update the axios request with proper headers and error handling
           const response = await axios({
             method: 'POST',
             url: 'https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace',
@@ -269,10 +274,10 @@ function App() {
               'Content-Type': 'text/plain',
               'Accept': 'application/json'
             },
-            timeout: 10000 // 10 second timeout
+            timeout: 10000
           });
 
-          const data = response.data;
+          data = response.data;
           responseDiv.textContent = "API Response: " + JSON.stringify(data);
           console.log('API Response:', data);
 
@@ -280,8 +285,7 @@ function App() {
           console.error('API Request Error:', error);
           responseDiv.textContent = "Error calling API: " + error.message;
           
-          // Still update the verification results, but mark as failed
-          const data = {
+          data = {
             user_id: 'API Error',
             similarity: 0,
             error: error.message
@@ -292,12 +296,12 @@ function App() {
               result.participantUUID === eventData.participantUUID
                 ? {
                     ...result,
-                  photoData: base64Image,
-                  email: email,
-                  userId: data.user_id || 'Unknown',
-                  confidence: data.similarity || 0
-                }
-              : result
+                    photoData: base64Image,
+                    email: email,
+                    userId: data.user_id || 'Unknown',
+                    confidence: data.similarity || 0
+                  }
+                : result
             )
           );
         }
