@@ -253,12 +253,12 @@ function App() {
           method: 'POST',
           body: base64Image
         };
-        responseDiv.textContent = "Sending image to AWS API Gateway... \n" + JSON.stringify(requestJson);
+        responseDiv.textContent = "Sending image to AWS API Gateway... \n" + JSON.stringify(requestJson).substring(0, 100);
         console.log("Calling AWS API Gateway endpoint with image size:", blob.size);
 
         const response = await fetch('https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
           method: 'POST',
-          body: base64Image,  // Send the blob directly
+          body: "test test test",  // Send the blob directly
         });
 
         if (!response.ok) {
