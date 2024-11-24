@@ -251,27 +251,45 @@ function App() {
         // raw image (of format "9j/...", which is not encoded into base64)
         const rawImage = base64Image.split(",")[1];
 
-        // request json
-        const requestJson = {
-          method: 'POST',
-          body: base64Image
-        };
-        responseDiv.textContent = "Sending image to AWS API Gateway... \n" + JSON.stringify(requestJson); //.substring(0, 750) + "\n...";
-        console.log("Calling AWS API Gateway endpoint with image size:", blob.size);
+        try {
+          // Update the axios request with proper headers and error handling
+          const response = await axios({
+            method: 'POST',
+            url: 'https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace',
+            data: rawImage,
+            headers: {
+              'Content-Type': 'text/plain',
+              'Accept': 'application/json'
+            },
+            timeout: 10000 // 10 second timeout
+          });
 
-        // Send request using axios instead of fetch
-        const response = await axios.post(
-          'https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace',
-          rawImage
-        );
+          const data = response.data;
+          responseDiv.textContent = "API Response: " + JSON.stringify(data);
+          console.log('API Response:', data);
 
-        // Update how we handle the response since axios automatically parses JSON
-        const data = response.data;
-        
-        // Log the response
-        responseDiv.textContent = "API Response: " + JSON.stringify(data);
-        console.log('API Response:', data);
-        
+        } catch (error) {
+          console.error('API Request Error:', error);
+          responseDiv.textContent = "Error calling API: " + error.message;
+          
+          // Still update the verification results, but mark as failed
+          setVerificationResults(prevResults => 
+            prevResults.map(result => 
+              result.participantUUID === eventData.participantUUID
+                ? {
+                    ...result,
+                    photoData: base64Image,
+                    email: email,
+                    userId: 'API Error',
+                    confidence: 0,
+                    error: error.message
+                  }
+                : result
+            )
+          );
+          return; // Exit the handler for this participant
+        }
+
         // Get participant's email
         const emailResponse = await zoomSdk.getMeetingParticipantsEmail({
           participantUUID: eventData.participantUUID
