@@ -192,6 +192,7 @@ function App() {
       setParticipantPhotos([]);
       setVerificationResults([]);
 
+      // Get participants
       const participantsResponse = await zoomSdk.getMeetingParticipants();
       const participants = participantsResponse.participants;
 
@@ -205,19 +206,20 @@ function App() {
       }));
       setVerificationResults(initialResults);
 
+      // Create the photo handler
       const photoHandler = async (event) => {
         console.log("Photo event received");
-        const photoData = await event;
+        const eventData = await event;
         
         // Convert photo data to binary
         const canvas = document.createElement('canvas');
-        canvas.width = photoData.imageData.width;
-        canvas.height = photoData.imageData.height;
+        canvas.width = eventData.imageData.width;
+        canvas.height = eventData.imageData.height;
         const ctx = canvas.getContext('2d');
         const imageData = new ImageData(
-          new Uint8ClampedArray(Object.values(photoData.imageData.data)),
-          photoData.imageData.width,
-          photoData.imageData.height
+          new Uint8ClampedArray(Object.values(eventData.imageData.data)),
+          eventData.imageData.width,
+          eventData.imageData.height
         );
         ctx.putImageData(imageData, 0, 0);
 
@@ -233,31 +235,28 @@ function App() {
 
         // Get participant's email
         const emailResponse = await zoomSdk.getMeetingParticipantsEmail({
-          participantUUID: photoData.participantUUID
+          participantUUID: eventData.participantUUID
         });
         const email = emailResponse.email;
         
         // Store base64 version for display
         const base64Image = canvas.toDataURL('image/jpeg');
         setParticipantPhotos(prevPhotos => [...prevPhotos, {
-          participantUUID: photoData.participantUUID,
+          participantUUID: eventData.participantUUID,
           photoData: base64Image,
-          timestamp: photoData.timestamp,
-          videoOff: photoData.videoOff,
-          optedOut: photoData.optedOut
+          timestamp: eventData.timestamp,
+          videoOff: eventData.videoOff,
+          optedOut: eventData.optedOut
         }]);
         
         try {
           const responseDiv = document.getElementById('response');
-          responseDiv.textContent = await blob.text();
+          responseDiv.textContent = "Sending image to AWS API Gateway... \n" + imageFile;
           // Call AWS API Gateway endpoint with binary data
           console.log("Calling AWS API Gateway endpoint");
           const response = await fetch('https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
             method: 'POST',
-            body: imageFile,
-            headers: {
-              'Content-Type': 'image/jpeg'
-            }
+            body: imageFile
           });
 
           if (!response.ok) {
@@ -270,7 +269,7 @@ function App() {
 
           setVerificationResults(prevResults => 
             prevResults.map(result => 
-              result.participantUUID === photoData.participantUUID
+              result.participantUUID === eventData.participantUUID
                 ? {
                     ...result,
                     photoData: base64Image,
@@ -286,7 +285,7 @@ function App() {
           // Update verification results with error
           setVerificationResults(prevResults => 
             prevResults.map(result => 
-              result.participantUUID === photoData.participantUUID
+              result.participantUUID === eventData.participantUUID
                 ? {
                     ...result,
                     photoData: base64Image,
