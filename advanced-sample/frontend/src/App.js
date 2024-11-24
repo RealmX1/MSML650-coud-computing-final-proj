@@ -228,79 +228,54 @@ function App() {
           canvas.toBlob(resolve, 'image/jpeg', 0.95)
         );
 
-        // Create a File object from the blob
-        const imageFile = new File([blob], 'participant-photo.jpg', { 
-          type: 'image/jpeg' 
+        // Debug: Check blob size
+        console.log('Blob size:', blob.size);
+
+        // Create FormData to properly send the image
+        const formData = new FormData();
+        formData.append('image', blob, 'participant-photo.jpg');
+
+        // Debug: Log the request
+        const responseDiv = document.getElementById('response');
+        responseDiv.textContent = "Sending image to AWS API Gateway... Size: " + blob.size + " bytes";
+        console.log("Calling AWS API Gateway endpoint with image size:", blob.size);
+
+        const response = await fetch('https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
+          method: 'POST',
+          body: blob,  // Send the blob directly
+          headers: {
+            'Content-Type': 'image/jpeg'  // Specify the content type
+          }
         });
 
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        // Log the response
+        responseDiv.textContent = "API Response: " + JSON.stringify(data);
+        console.log('API Response:', data);
+        
         // Get participant's email
         const emailResponse = await zoomSdk.getMeetingParticipantsEmail({
           participantUUID: eventData.participantUUID
         });
         const email = emailResponse.email;
-        
-        // Store base64 version for display
-        const base64Image = canvas.toDataURL('image/jpeg');
-        setParticipantPhotos(prevPhotos => [...prevPhotos, {
-          participantUUID: eventData.participantUUID,
-          photoData: base64Image,
-          timestamp: eventData.timestamp,
-          videoOff: eventData.videoOff,
-          optedOut: eventData.optedOut
-        }]);
-        
-        try {
-          const responseDiv = document.getElementById('response');
-          // log the http request json
-          const requestBody = {
-            method: 'POST',
-            body: imageFile
-          };
 
-          responseDiv.textContent = "Sending image to AWS API Gateway... \n" + JSON.stringify(requestBody);
-          console.log("Calling AWS API Gateway endpoint");
-          const response = await fetch('https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
-            method: 'POST',
-            body: "test test test body test."
-          });
-
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-
-          const data = await response.json();
-          // log the response in a div
-          responseDiv.textContent = JSON.stringify(data);
-
-          setVerificationResults(prevResults => 
-            prevResults.map(result => 
-              result.participantUUID === eventData.participantUUID
-                ? {
-                    ...result,
-                    photoData: base64Image,
-                    email: email,
-                    userId: data.user_id || 'Unknown',
-                    confidence: data.similarity || 0
-                  }
-                : result
-            )
-          );
-        } catch (error) {
-          console.error('Error verifying face:', error);
-          // Update verification results with error
-          setVerificationResults(prevResults => 
-            prevResults.map(result => 
-              result.participantUUID === eventData.participantUUID
-                ? {
-                    ...result,
-                    photoData: base64Image,
-                    email: email,
-                    error: error.message
-                  }
-                : result
-            )
-          );
-        }
+        setVerificationResults(prevResults => 
+          prevResults.map(result => 
+            result.participantUUID === eventData.participantUUID
+              ? {
+                  ...result,
+                  photoData: base64Image,
+                  email: email,
+                  userId: data.user_id || 'Unknown',
+                  confidence: data.similarity || 0
+                }
+              : result
+          )
+        );
       };
 
       // Remove any existing onPhoto listeners
