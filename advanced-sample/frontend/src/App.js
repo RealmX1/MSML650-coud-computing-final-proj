@@ -265,7 +265,7 @@ function App() {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const data = await response.json();
+        const data = response.json();
         // Log the response
         responseDiv.textContent = "API Response: " + JSON.stringify(data);
         console.log('API Response:', data);
