@@ -223,6 +223,14 @@ function App() {
         );
         ctx.putImageData(imageData, 0, 0);
 
+        
+
+        // Get participant's email
+        const emailResponse = await zoomSdk.getMeetingParticipantsEmail({
+          participantUUID: eventData.participantUUID
+        });
+        const email = emailResponse.email;
+
         // Convert canvas to blob
         const blob = await new Promise(resolve => 
           canvas.toBlob(resolve, 'image/jpeg', 0.95)
@@ -289,12 +297,6 @@ function App() {
           );
           return; // Exit the handler for this participant
         }
-
-        // Get participant's email
-        const emailResponse = await zoomSdk.getMeetingParticipantsEmail({
-          participantUUID: eventData.participantUUID
-        });
-        const email = emailResponse.email;
 
         setVerificationResults(prevResults => 
           prevResults.map(result => 
