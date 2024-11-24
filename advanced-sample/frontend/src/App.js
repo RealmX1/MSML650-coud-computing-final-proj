@@ -283,7 +283,7 @@ function App() {
 
         } catch (error) {
           console.error('API Request Error:', error);
-          responseDiv.textContent = "Error calling API: " + error.message;
+          responseDiv.textContent = "Error calling API: " + JSON.stringify(error);
           
           data = {
             user_id: 'API Error',
