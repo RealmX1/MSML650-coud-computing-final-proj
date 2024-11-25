@@ -265,6 +265,7 @@ function App() {
           similarity: 0
         };
 
+        // Add better error handling and logging for the API call
         try {
           const response = await axios({
             method: 'POST',
@@ -272,23 +273,43 @@ function App() {
             data: rawImage,
             headers: {
               'Content-Type': 'text/plain',
-              'Accept': 'application/json'
+              'Accept': 'application/json',
+              // Add CORS headers
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'POST, OPTIONS',
+              'Access-Control-Allow-Headers': 'Content-Type'
             },
-            timeout: 10000
+            timeout: 10000,
+            // Add retry logic
+            retry: 3,
+            retryDelay: 1000
           });
 
           data = response.data;
-          responseDiv.textContent = "API Response: " + JSON.stringify(data);
           console.log('API Response:', data);
+          responseDiv.textContent = "API Response: " + JSON.stringify(data);
 
         } catch (error) {
           console.error('API Request Error:', error);
-          responseDiv.textContent = "Error calling API: " + JSON.stringify(error);
+          let errorMessage = 'Unknown error occurred';
+          
+          if (error.response) {
+            // Server responded with error
+            errorMessage = `Server error: ${error.response.status} - ${error.response.data}`;
+          } else if (error.request) {
+            // Request made but no response
+            errorMessage = 'No response from server. Please check your connection.';
+          } else {
+            // Error in request setup
+            errorMessage = `Request error: ${error.message}`;
+          }
+          
+          responseDiv.textContent = `Error calling API: ${errorMessage}`;
           
           data = {
             user_id: 'API Error',
             similarity: 0,
-            error: error.message
+            error: errorMessage
           };
         } finally {
           setVerificationResults(prevResults => 
@@ -324,6 +345,8 @@ function App() {
 
     } catch (error) {
       console.error('Error taking participant photos:', error);
+      const responseDiv = document.getElementById('response');
+      responseDiv.textContent = `Error taking photos: ${error.message}`;
     }
   };
 
