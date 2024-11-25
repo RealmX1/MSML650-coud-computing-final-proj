@@ -267,22 +267,12 @@ function App() {
 
         // Add better error handling and logging for the API call
         try {
-          const response = await axios({
+          const response = await fetch('https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
             method: 'POST',
-            url: 'https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace',
-            data: rawImage,
+            body: blob,  // Send the blob directly
             headers: {
-              'Content-Type': 'text/plain',
-              'Accept': 'application/json',
-              // Add CORS headers
-              'Access-Control-Allow-Origin': '*',
-              'Access-Control-Allow-Methods': 'POST, OPTIONS',
-              'Access-Control-Allow-Headers': 'Content-Type'
-            },
-            timeout: 10000,
-            // Add retry logic
-            retry: 3,
-            retryDelay: 1000
+              'Content-Type': 'image/jpeg'  // Specify the content type
+            }
           });
 
           data = response.data;
