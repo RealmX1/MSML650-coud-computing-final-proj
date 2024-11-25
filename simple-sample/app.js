@@ -66,13 +66,13 @@ const headers = {
     crossOriginEmbedderPolicy: false,
     contentSecurityPolicy: {
         directives: {
-            'default-src': 'self',
+            'default-src': "'self'",
             styleSrc: ["'self'"],
             scriptSrc: ["'self'", 'https://appssdk.zoom.us/sdk.min.js'],
             imgSrc: ["'self'", `https://${redirectHost}`],
-            'connect-src': 'self',
-            'base-uri': 'self',
-            'form-action': 'self',
+            'connect-src': ["'self'", 'https://*.execute-api.us-east-1.amazonaws.com'],
+            'base-uri': "'self'",
+            'form-action': "'self'",
         },
     },
 };
