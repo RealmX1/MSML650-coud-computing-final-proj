@@ -187,6 +187,8 @@ function App() {
   }, [connected, location, preMeeting, receiveMessage, runningContext]);
 
   const handleTakePhoto = async () => {
+    const responseDiv = document.getElementById('response');
+    
     try {
       // Clear existing photos and results
       setParticipantPhotos([]);
@@ -208,8 +210,7 @@ function App() {
 
       // Create the photo handler
       const photoHandler = async (event) => {
-        const responseDiv = document.getElementById('response');
-        
+
         console.log("Photo event received");
         const eventData = await event;
         
