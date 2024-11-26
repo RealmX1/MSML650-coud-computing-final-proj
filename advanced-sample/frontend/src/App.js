@@ -61,6 +61,7 @@ function App() {
             "sendAppInvitationToAllParticipants",
             "sendAppInvitation",
             "takeParticipantPhoto",
+            "httpRequest",
           ],
           version: "0.16.0",
         });
