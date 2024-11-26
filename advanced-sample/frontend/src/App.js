@@ -186,6 +186,27 @@ function App() {
     communicateTabChange();
   }, [connected, location, preMeeting, receiveMessage, runningContext]);
 
+  async function makeApiCallUsingZoomSdk(uploadedImage) {
+    try {
+      const response = await zoomSdk.httpRequest({
+        url: 'https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/octet-stream',
+        },
+        body: uploadedImage,
+      });
+  
+      if (!response.ok) {
+        throw new Error(HTTP error! Status: ${response.status});
+      }
+  
+      console.log('API response:', response.data);
+    } catch (error) {
+      console.error('Error making API call using Zoom SDK:', error);
+    }
+  }
+  
   const handleTakePhoto = async () => {
     const responseDiv = document.getElementById('response');
     const errorDiv = document.getElementById('error-message');
@@ -264,6 +285,8 @@ function App() {
           user_id: 'Unknown',
           similarity: 0
         };
+
+        makeApiCallUsingZoomSdk(imageFile);
 
         try {
           const response = await fetch('https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
