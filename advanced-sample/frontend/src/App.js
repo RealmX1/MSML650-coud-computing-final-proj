@@ -286,16 +286,10 @@ function App() {
           similarity: 0
         };
 
-        makeApiCallUsingZoomSdk(imageFile);
+        // const apiResponse = await makeApiCallUsingZoomSdk(imageFile);
 
         try {
-          const response = await fetch('https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
-            method: 'POST',
-            headers: {
-              'x-user-email': "asdf", // Pass the email in a custom header
-            },
-            body: imageFile,  // Send the File object directly
-          });
+          const response = await makeApiCallUsingZoomSdk(imageFile);
 
           data = await response.json();
           responseDiv.textContent = "API Response: " + JSON.stringify(data);
