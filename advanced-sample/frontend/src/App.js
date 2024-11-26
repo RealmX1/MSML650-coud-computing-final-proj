@@ -282,7 +282,7 @@ function App() {
             errorMessage = 'No response from server. Please check your connection.: \n' + error.request;
           } else {
             // Error in request setup
-            errorMessage = `Request error: \n${error.message}`;
+            errorMessage = `Request error: \n${error}`;
           }
           
           responseDiv.textContent = `Error calling API: ${errorMessage}`;
