@@ -61,7 +61,6 @@ function App() {
             "sendAppInvitationToAllParticipants",
             "sendAppInvitation",
             "takeParticipantPhoto",
-            "httpRequest",
           ],
           version: "0.16.0",
         });
@@ -187,28 +186,28 @@ function App() {
     communicateTabChange();
   }, [connected, location, preMeeting, receiveMessage, runningContext]);
 
-  async function makeApiCallUsingZoomSdk(uploadedImage) {
-    const errorDiv = document.getElementById('error-message');
-    try {
-      const response = await zoomSdk.httpRequest({
-        url: 'https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace',
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/octet-stream',
-        },
-        body: uploadedImage,
-      });
+  // async function makeApiCallUsingZoomSdk(uploadedImage) {
+  //   const errorDiv = document.getElementById('error-message');
+  //   try {
+  //     const response = await zoomSdk.httpRequest({
+  //       url: 'https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace',
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/octet-stream',
+  //       },
+  //       body: uploadedImage,
+  //     });
   
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
+  //     if (!response.ok) {
+  //       throw new Error(`HTTP error! Status: ${response.status}`);
+  //     }
   
-      console.log('API response:', response.data);
-      return response
-    } catch (error) {
-      errorDiv.textContent = `Error making API call using Zoom SDK: ${error.message}`;
-    }
-  }
+  //     console.log('API response:', response.data);
+  //     return response
+  //   } catch (error) {
+  //     errorDiv.textContent = `Error making API call using Zoom SDK: ${error.message}`;
+  //   }
+  // }
   
   const handleTakePhoto = async () => {
     const responseDiv = document.getElementById('response');
@@ -292,8 +291,16 @@ function App() {
         // const apiResponse = await makeApiCallUsingZoomSdk(imageFile);
 
         try {
-          const response = await makeApiCallUsingZoomSdk(imageFile);
-
+          // const response = await makeApiCallUsingZoomSdk(imageFile);
+          const response = await fetch(
+            'https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
+              method: 'POST',
+              body: imageFile,
+              headers: {
+                'Content-Type': 'image/jpeg',
+                'Access-Control-Allow-Origin': '*',
+              },
+          });
           responseDiv.textContent = "API Response: " + response;
 
         } catch (error) {
