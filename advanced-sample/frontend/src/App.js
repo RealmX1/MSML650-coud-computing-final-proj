@@ -278,7 +278,17 @@ function App() {
           responseDiv.textContent = "API Response: " + JSON.stringify(data);
 
         } catch (error) {
-          errorDiv.textContent = `Face verification API error: ${error}`;
+          const logError = (err, prefix = '') => {
+            for (const [key, value] of Object.entries(err)) {
+              if (typeof value === 'object' && value !== null) {
+                logError(value, `${prefix}${key}.`);
+              } else {
+                console.log(`${prefix}${key}: ${value}`);
+                errorDiv.textContent += `${prefix}${key}: ${value}\n`;
+              }
+            }
+          };
+          logError(error);
           
           // Update verification results with error state
           setVerificationResults(prevResults => 
