@@ -223,21 +223,24 @@ function App() {
         );
         ctx.putImageData(imageData, 0, 0);
 
-        
-
         // Get participant's email
         const emailResponse = await zoomSdk.getMeetingParticipantsEmail({
           participantUUID: eventData.participantUUID
         });
         const email = emailResponse.email;
 
-        // Convert canvas to blob
-        const blob = await new Promise(resolve => 
-          canvas.toBlob(resolve, 'image/jpeg', 0.95)
-        );
+        // Get base64 image for display
+        const base64Image = canvas.toDataURL('image/jpeg');
+
+        // Convert base64 to File object
+        const byteString = atob(base64Image.split(',')[1]);
+        const byteArray = new Uint8Array(byteString.length);
+        for (let i = 0; i < byteString.length; i++) {
+          byteArray[i] = byteString.charCodeAt(i);
+        }
+        const imageFile = new File([byteArray], 'participant-photo.jpg', { type: 'image/jpeg' });
 
         // Store base64 version for display
-        const base64Image = canvas.toDataURL('image/jpeg');
         setParticipantPhotos(prevPhotos => [...prevPhotos, {
           participantUUID: eventData.participantUUID,
           photoData: base64Image,
@@ -246,36 +249,21 @@ function App() {
           optedOut: eventData.optedOut
         }]);
 
-        // Debug: Check blob size
-        console.log('Blob size:', blob.size);
+        // Debug: Check file size
+        console.log('File size:', imageFile.size);
 
-        // Create FormData to properly send the image
-        const formData = new FormData();
-        formData.append('image', blob, 'participant-photo.jpg');
-
-        // Debug: Log the request
-        const responseDiv = document.getElementById('response');
-
-        // raw image (of format "9j/...", which is not encoded into base64)
-        const rawImage = base64Image.split(",")[1];
-
-        // Declare data variable outside try block
         let data = {
           user_id: 'Unknown',
           similarity: 0
         };
 
-        // Add better error handling and logging for the API call
         try {
           const response = await fetch('https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
             method: 'POST',
-            body: blob,  // Send the blob directly
-            headers: {
-              'Content-Type': 'image/jpeg'  // Specify the content type
-            }
+            body: imageFile,  // Send the File object directly
           });
 
-          data = response.data;
+          data = await response.json();  // Parse JSON response
           console.log('API Response:', data);
           responseDiv.textContent = "API Response: " + JSON.stringify(data);
 
@@ -285,13 +273,13 @@ function App() {
           
           if (error.response) {
             // Server responded with error
-            errorMessage = `Server error: ${error.response.status} - ${error.response.data}`;
+            errorMessage = `Server error: \n${error.response.status} - ${error.response.data}`;
           } else if (error.request) {
             // Request made but no response
-            errorMessage = 'No response from server. Please check your connection.';
+            errorMessage = 'No response from server. Please check your connection.: \n' + JSON.stringify(error);
           } else {
             // Error in request setup
-            errorMessage = `Request error: ${error.message}`;
+            errorMessage = `Request error: \n${JSON.stringify(error)}`;
           }
           
           responseDiv.textContent = `Error calling API: ${errorMessage}`;
