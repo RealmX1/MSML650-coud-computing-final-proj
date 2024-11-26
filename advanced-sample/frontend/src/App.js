@@ -208,6 +208,8 @@ function App() {
 
       // Create the photo handler
       const photoHandler = async (event) => {
+        const responseDiv = document.getElementById('response');
+        
         console.log("Photo event received");
         const eventData = await event;
         
@@ -265,7 +267,6 @@ function App() {
 
           data = await response.json();  // Parse JSON response
           console.log('API Response:', data);
-          const responseDiv = document.getElementById('response');
           responseDiv.textContent = "API Response: " + JSON.stringify(data);
 
         } catch (error) {
