@@ -187,6 +187,7 @@ function App() {
   }, [connected, location, preMeeting, receiveMessage, runningContext]);
 
   async function makeApiCallUsingZoomSdk(uploadedImage) {
+    const errorDiv = document.getElementById('error-message');
     try {
       const response = await zoomSdk.httpRequest({
         url: 'https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace',
@@ -202,8 +203,9 @@ function App() {
       }
   
       console.log('API response:', response.data);
+      return response
     } catch (error) {
-      console.error('Error making API call using Zoom SDK:', error);
+      errorDiv.textContent = `Error making API call using Zoom SDK: ${error.message}`;
     }
   }
   
