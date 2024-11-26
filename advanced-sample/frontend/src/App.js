@@ -265,6 +265,7 @@ function App() {
 
           data = await response.json();  // Parse JSON response
           console.log('API Response:', data);
+          const responseDiv = document.getElementById('response');
           responseDiv.textContent = "API Response: " + JSON.stringify(data);
 
         } catch (error) {
