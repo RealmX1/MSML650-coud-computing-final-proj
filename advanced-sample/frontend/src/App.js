@@ -198,7 +198,7 @@ function App() {
       });
   
       if (!response.ok) {
-        throw new Error(HTTP error! Status: ${response.status});
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
   
       console.log('API response:', response.data);
