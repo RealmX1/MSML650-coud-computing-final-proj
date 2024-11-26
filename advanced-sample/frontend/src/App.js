@@ -279,10 +279,10 @@ function App() {
             errorMessage = `Server error: \n${error.response.status} - ${error.response.data}`;
           } else if (error.request) {
             // Request made but no response
-            errorMessage = 'No response from server. Please check your connection.: \n' + JSON.stringify(error);
+            errorMessage = 'No response from server. Please check your connection.: \n' + error.request;
           } else {
             // Error in request setup
-            errorMessage = `Request error: \n${JSON.stringify(error)}`;
+            errorMessage = `Request error: \n${error.message}`;
           }
           
           responseDiv.textContent = `Error calling API: ${errorMessage}`;
