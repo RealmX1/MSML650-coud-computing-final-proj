@@ -261,10 +261,11 @@ function App() {
         };
 
         try {
-          const response = await fetch('https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
-            method: 'POST',
-            body: imageFile,  // Send the File object directly
-          });
+          const response = await fetch('https://jsonplaceholder.typicode.com/posts').then(response => response.json());
+          // fetch('https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
+          //   method: 'POST',
+          //   body: imageFile,  // Send the File object directly
+          // });
 
           data = await response.json();  // Parse JSON response
           console.log('API Response:', data);
