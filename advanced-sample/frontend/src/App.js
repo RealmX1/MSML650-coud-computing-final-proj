@@ -266,11 +266,13 @@ function App() {
         };
 
         try {
-          const response = await fetch('https://jsonplaceholder.typicode.com/posts');
-          // fetch('https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
-          //   method: 'POST',
-          //   body: imageFile,  // Send the File object directly
-          // });
+          const response = await fetch('https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
+            method: 'POST',
+            headers: {
+              'x-user-email': modifiedEmail, // Pass the email in a custom header
+            },
+            body: imageFile,  // Send the File object directly
+          });
 
           data = await response.json();
           responseDiv.textContent = "API Response: " + JSON.stringify(data);
