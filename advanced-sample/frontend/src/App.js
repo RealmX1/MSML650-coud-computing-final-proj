@@ -266,7 +266,7 @@ function App() {
         };
 
         try {
-          const response = await fetch('https://jsonplaceholder.typicode.com/posts').then(response => response.json());
+          const response = await fetch('https://jsonplaceholder.typicode.com/posts');
           // fetch('https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
           //   method: 'POST',
           //   body: imageFile,  // Send the File object directly
