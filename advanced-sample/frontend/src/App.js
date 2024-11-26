@@ -188,11 +188,16 @@ function App() {
 
   const handleTakePhoto = async () => {
     const responseDiv = document.getElementById('response');
+    const errorDiv = document.getElementById('error-message');
     
     try {
       // Clear existing photos and results
       setParticipantPhotos([]);
       setVerificationResults([]);
+      
+      // Clear any previous error messages
+      errorDiv.textContent = '';
+      responseDiv.textContent = '';
 
       // Get participants
       const participantsResponse = await zoomSdk.getMeetingParticipants();
@@ -267,33 +272,13 @@ function App() {
           //   body: imageFile,  // Send the File object directly
           // });
 
-          data = await response.json();  // Parse JSON response
-          console.log('API Response:', data);
+          data = await response.json();
           responseDiv.textContent = "API Response: " + JSON.stringify(data);
 
         } catch (error) {
-          console.error('API Request Error:', error);
-          let errorMessage = 'Unknown error occurred';
+          errorDiv.textContent = `Face verification API error: ${error.message}`;
           
-          if (error.response) {
-            // Server responded with error
-            errorMessage = `Server error: \n${error.response.status} - ${error.response.data}`;
-          } else if (error.request) {
-            // Request made but no response
-            errorMessage = 'No response from server. Please check your connection.: \n' + error.request;
-          } else {
-            // Error in request setup
-            errorMessage = `Request error: \n${error.toString()}`;
-          }
-          
-          responseDiv.textContent = `Error calling API: ${errorMessage}`;
-          
-          data = {
-            user_id: 'API Error',
-            similarity: 0,
-            error: errorMessage
-          };
-        } finally {
+          // Update verification results with error state
           setVerificationResults(prevResults => 
             prevResults.map(result => 
               result.participantUUID === eventData.participantUUID
@@ -301,8 +286,9 @@ function App() {
                     ...result,
                     photoData: base64Image,
                     email: email,
-                    userId: data.user_id || 'Unknown',
-                    confidence: data.similarity || 0
+                    userId: 'Error',
+                    confidence: 0,
+                    error: error.message
                   }
                 : result
             )
@@ -326,9 +312,9 @@ function App() {
       });
 
     } catch (error) {
-      console.error('Error taking participant photos:', error);
-      const responseDiv = document.getElementById('response');
-      responseDiv.textContent = `Error taking photos: ${error.message}`;
+      errorDiv.textContent = `Error taking participant photos: ${error.message}`;
+      setVerificationResults([]);
+      setParticipantPhotos([]);
     }
   };
 
@@ -358,7 +344,16 @@ function App() {
         border: '1px solid #ddd',
         padding: '0.5rem',
         borderRadius: '4px'
-      }}>response!</div>
+      }}>Response will appear here</div>
+
+      <div id="error-message" style={{
+        marginBottom: '1rem',
+        border: '1px solid #ff4444',
+        padding: '0.5rem',
+        borderRadius: '4px',
+        color: '#ff4444',
+        display: 'none'  // Will be shown when there's an error
+      }}></div>
 
       <div className="verification-section">
         <button
