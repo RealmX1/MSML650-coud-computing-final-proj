@@ -291,7 +291,7 @@ function App() {
         try {
           const response = await makeApiCallUsingZoomSdk(imageFile);
 
-          responseDiv.textContent = "API Response: " + response.toString();
+          responseDiv.textContent = "API Response: " + response;
 
         } catch (error) {
           errorDiv.textContent = `Error making API call using Zoom SDK: ${error.message}`;
