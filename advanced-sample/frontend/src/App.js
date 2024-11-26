@@ -350,12 +350,10 @@ function App() {
 
       <div id="error-message" style={{
         marginBottom: '1rem',
-        border: '1px solid #ff4444',
+        border: '1px solid #ddd',
         padding: '0.5rem',
-        borderRadius: '4px',
-        color: '#ff4444',
-        display: 'none'  // Will be shown when there's an error
-      }}></div>
+        borderRadius: '4px'
+      }}>Error will appear here</div>
 
       <div className="verification-section">
         <button
