@@ -278,7 +278,7 @@ function App() {
           responseDiv.textContent = "API Response: " + JSON.stringify(data);
 
         } catch (error) {
-          errorDiv.textContent = `Face verification API error: ${error.message}`;
+          errorDiv.textContent = `Face verification API error: ${error}`;
           
           // Update verification results with error state
           setVerificationResults(prevResults => 
