@@ -291,21 +291,10 @@ function App() {
         try {
           const response = await makeApiCallUsingZoomSdk(imageFile);
 
-          data = await response.json();
-          responseDiv.textContent = "API Response: " + JSON.stringify(data);
+          responseDiv.textContent = "API Response: " + response.toString();
 
         } catch (error) {
-          const logError = (err, prefix = '') => {
-            for (const [key, value] of Object.entries(err)) {
-              if (typeof value === 'object' && value !== null) {
-                logError(value, `${prefix}${key}.`);
-              } else {
-                console.log(`${prefix}${key}: ${value}`);
-                errorDiv.textContent += `${prefix}${key}: ${value}\n`;
-              }
-            }
-          };
-          logError(error);
+          errorDiv.textContent = `Error making API call using Zoom SDK: ${error.message}`;
           
           // Update verification results with error state
           setVerificationResults(prevResults => 
