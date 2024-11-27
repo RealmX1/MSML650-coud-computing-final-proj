@@ -357,17 +357,10 @@ function App() {
   }
 
   return (
-    <div className="App">
-      <h1>Hello{user ? ` ${user.first_name} ${user.last_name}` : " Zoom Apps user"}!</h1>
-      <p>{`User Context Status: ${userContextStatus}`}</p>
-      <p>
-        {runningContext ?
-          `Running Context: ${runningContext}` :
-          "Configuring Zoom JavaScript SDK..."
-        }
-      </p>
-
-      <div id="response" style={{ 
+    <div>
+      <div>Participant Verification</div>
+      <div className="App">
+        <div id="response" style={{ 
         marginBottom: '1rem',
         border: '1px solid #ddd',
         padding: '0.5rem',
@@ -418,7 +411,8 @@ function App() {
                 {photo.participantUUID}
               </p>
             </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </div>
