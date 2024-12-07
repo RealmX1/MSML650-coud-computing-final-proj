@@ -292,6 +292,7 @@ function App() {
 
         try {
           // const response = await makeApiCallUsingZoomSdk(imageFile);
+          const formData = new FormData();  
           formData.append('file', imageFile);
           const response = await fetch(
             'https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
