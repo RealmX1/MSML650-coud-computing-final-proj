@@ -1,5 +1,4 @@
 /* globals zoomSdk */
-import { useLocation, useHistory } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
 import { apis, invokeZoomAppsSdk } from "./apis";
 import { Authorization } from "./components/Authorization";
@@ -13,7 +12,6 @@ let once = 0; // to prevent increasing number of event listeners being added
 
 function App() {
   const history = useHistory();
-  const location = useLocation();
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
   const [runningContext, setRunningContext] = useState(null);
@@ -186,29 +184,6 @@ function App() {
     communicateTabChange();
   }, [connected, location, preMeeting, receiveMessage, runningContext]);
 
-  async function makeApiCallUsingZoomSdk(uploadedImage) {
-    const errorDiv = document.getElementById('error-message');
-    try {
-      const response = await zoomSdk.httpRequest({
-        url: 'https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace',
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/octet-stream',
-        },
-        body: uploadedImage,
-      });
-  
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-  
-      console.log('API response:', response.data);
-      return response
-    } catch (error) {
-      errorDiv.textContent = `Error making API call using Zoom SDK: ${error.message}`;
-    }
-  }
-  
   const handleTakePhoto = async () => {
     const responseDiv = document.getElementById('response');
     const errorDiv = document.getElementById('error-message');
@@ -288,25 +263,30 @@ function App() {
           similarity: 0
         };
 
-        // const apiResponse = await makeApiCallUsingZoomSdk(imageFile);
-
         try {
-          // const response = await makeApiCallUsingZoomSdk(imageFile);
-          const formData = new FormData();  
-          formData.append('file', imageFile);
-          const response = await fetch(
-            'https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
-              method: 'POST',
-              body: formData,
-              headers: {
-                'Content-Type': 'image/jpeg',
-                'Access-Control-Allow-Origin': '*',
-              },
+          const response = await fetch('https://v8c6qwk16b.execute-api.us-east-1.amazonaws.com/default/RetrieveUserByFace', {
+            method: 'POST',
+            headers: {
+              'x-user-email': "asdf", // Pass the email in a custom header
+            },
+            body: imageFile,  // Send the File object directly
           });
-          responseDiv.textContent = "API Response: " + response;
+
+          data = await response.json();
+          responseDiv.textContent = "API Response: " + JSON.stringify(data);
 
         } catch (error) {
-          errorDiv.textContent = `Error making API call using Zoom SDK: ${error.message}`;
+          const logError = (err, prefix = '') => {
+            for (const [key, value] of Object.entries(err)) {
+              if (typeof value === 'object' && value !== null) {
+                logError(value, `${prefix}${key}.`);
+              } else {
+                console.log(`${prefix}${key}: ${value}`);
+                errorDiv.textContent += `${prefix}${key}: ${value}\n`;
+              }
+            }
+          };
+          logError(error);
           
           // Update verification results with error state
           setVerificationResults(prevResults => 
@@ -359,10 +339,17 @@ function App() {
   }
 
   return (
-    <div>
-      <div>Participant Verification</div>
-      <div className="App">
-        <div id="response" style={{ 
+    <div className="App">
+      <h1>Hello{user ? ` ${user.first_name} ${user.last_name}` : " Zoom Apps user"}!</h1>
+      <p>{`User Context Status: ${userContextStatus}`}</p>
+      <p>
+        {runningContext ?
+          `Running Context: ${runningContext}` :
+          "Configuring Zoom JavaScript SDK..."
+        }
+      </p>
+
+      <div id="response" style={{ 
         marginBottom: '1rem',
         border: '1px solid #ddd',
         padding: '0.5rem',
@@ -413,8 +400,7 @@ function App() {
                 {photo.participantUUID}
               </p>
             </div>
-            ))}
-          </div>
+          ))}
         </div>
       </div>
     </div>
